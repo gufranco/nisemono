@@ -1,0 +1,25 @@
+#compdef nisemono
+
+_nisemono() {
+  local -a commands
+  commands=(
+    'probe:test the disk in a few minutes'
+    'doctor:check the tools nisemono needs'
+    'version:print the version'
+    'help:print usage'
+  )
+
+  if (( CURRENT == 2 )) && [[ "${words[2]}" != -* ]]; then
+    _describe command commands
+    return
+  fi
+
+  _arguments \
+    '--samples[test at least N blocks across the disk]:samples:' \
+    '--allow-internal[allow an internal disk]' \
+    '--json[print the result as one JSON object, for scripts]' \
+    '--theme[colours of the terminal interface]:theme:(kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono)' \
+    '*:device:_files'
+}
+
+_nisemono "$@"

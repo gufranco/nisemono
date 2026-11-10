@@ -1,0 +1,142 @@
+.TH NISEMONO 1 "2026-11-10" "nisemono" "User Commands"
+.SH NAME
+nisemono \- find out whether a card or USB drive holds what it claims
+.SH SYNOPSIS
+.B nisemono
+.br
+.B nisemono probe
+.RI [ options ] " device" | mount_point
+.br
+.B nisemono doctor
+.br
+.B nisemono version
+.br
+.B nisemono help
+.SH DESCRIPTION
+A counterfeit SD card or USB drive reports more space than its flash holds.
+Writes past the real flash land on an earlier address or are lost, so files
+copied to it look fine until they are read back.
+.PP
+.B nisemono probe
+writes a tagged block on an even grid across the whole size the disk reports,
+and only after every block is written reads them all back. A block that comes
+back with another block's tag, or with no tag at all, marks the end of the
+real flash. probe then tests single blocks to find the exact point where the
+real flash ends: it tries the divisors of the distance between two blocks that
+came back from one place, then halves the range between the last good and the
+first bad block. The tags carry a random code for each run, so data left by an
+earlier run is never mistaken for this one.
+.PP
+A fake verdict is proof. A pass means every tested block came back, which
+catches the fakes sold today, but a card that wraps at an address no test
+block lands on can still pass. A larger
+.B \-\-samples
+narrows that gap.
+.PP
+A disk is named by its device, such as
+.IR /dev/disk4 ,
+or by any volume mounted from it, such as
+.IR /Volumes/SD ,
+which stands for the whole disk.
+.PP
+Before anything is written, nisemono prints what it is about to test and asks
+for the device name to be typed back. The probe overwrites the blocks it
+tests, and on a fake card it overwrites more, so copy anything you need first.
+.SH COMMANDS
+.TP
+.B probe
+Test the disk and report its real size.
+.TP
+.B doctor
+List the tools nisemono needs and whether each is installed. Exits non-zero only
+when a required tool is missing.
+.TP
+.B version
+Print the version and the platform.
+.TP
+.B help
+Print the usage page.
+.SH OPTIONS
+.TP
+.BI \-\-samples " N"
+Test at least
+.I N
+blocks across the disk. Default 256. More blocks find a real size that is not a
+power of two more closely and take longer.
+.TP
+.B \-\-allow\-internal
+Allow an internal disk. The disk holding the running system is always refused.
+.TP
+.B \-\-json
+Print the result as one JSON object on stdout, for scripts: the disk, the size
+it reports, its real size, the size up to the last block that read back,
+the verdict
+.B pass
+or
+.BR fake ,
+and the counts of grid blocks that read back, came back from a lower address
+and were lost.
+.TP
+.BI \-\-theme " name"
+Colours of the terminal interface:
+.BR kodougu ,
+.BR catppuccin\-mocha ,
+.BR catppuccin\-latte ,
+.BR dracula ,
+.BR nord ,
+.BR gruvbox ,
+.B tokyo\-night
+or
+.BR mono .
+The default is
+.BR kodougu .
+.PP
+Every option that takes a value also takes the form
+.IR \-\-name = value ,
+and
+.B \-\-
+ends the options.
+.SH ENVIRONMENT
+.TP
+.B NISEMONO_SAMPLES
+Same as
+.BR \-\-samples .
+.TP
+.B NISEMONO_ALLOW_INTERNAL
+Set to
+.B y
+for the same effect as
+.BR \-\-allow\-internal .
+.TP
+.B NISEMONO_JSON
+Set to
+.B y
+for the same effect as
+.BR \-\-json .
+.PP
+An option on the command line wins over the environment.
+.TP
+.B NISEMONO_THEME
+The theme when
+.B \-\-theme
+is not given.
+.TP
+.B KODOUGU_THEME
+The theme of every kodougu tool, when neither
+.B \-\-theme
+nor
+.B NISEMONO_THEME
+is set.
+.TP
+.B KODOUGU_ACCENT
+A colour such as #CBA6F7 that replaces the accent of the theme.
+.TP
+.B NO_COLOR
+Turns colour off in every theme.
+.SH EXIT STATUS
+0 when every test block came back, 1 when the disk is fake, on any failure and
+on any refusal.
+.SH SEE ALSO
+.BR kiyome (1),
+.BR kakikomi (1),
+.BR dd (1)

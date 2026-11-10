@@ -1,0 +1,38 @@
+---
+name: formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to point the formula at
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    name: ask the tap to bump the formula
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/create-github-app-token@v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.TAP_APP_ID }}
+          private-key: ${{ secrets.TAP_APP_PRIVATE_KEY }}
+          owner: gufranco
+          repositories: homebrew-tap
+
+      - name: Dispatch the tap's formula-bump workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          jq -nc --arg tag "${TAG}" \
+            '{event_type: "formula-bump", client_payload: {name: "nisemono", tag: $tag}}' \
+            | gh api --method POST repos/gufranco/homebrew-tap/dispatches --input -

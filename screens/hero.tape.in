@@ -1,0 +1,20 @@
+Source common.tape
+Output hero.gif
+Set Height 1250
+Hide
+Type ". ./setup.sh"
+Enter
+Sleep 1s
+Show
+Sleep 800ms
+Type "nisemono /Volumes/USB"
+Sleep 400ms
+Enter
+Sleep 6s
+Type "@DISK@"
+Sleep 500ms
+Screenshot confirm.png
+Enter
+Sleep 50s
+Screenshot result.png
+Sleep 2s

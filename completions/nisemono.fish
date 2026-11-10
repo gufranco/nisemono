@@ -1,0 +1,9 @@
+complete -c nisemono -n __fish_use_subcommand -a probe -d 'test the disk in a few minutes'
+complete -c nisemono -n __fish_use_subcommand -a doctor -d 'check the tools nisemono needs'
+complete -c nisemono -n __fish_use_subcommand -a version -d 'print the version'
+complete -c nisemono -n __fish_use_subcommand -a help -d 'print usage'
+
+complete -c nisemono -l samples -x -d 'test at least N blocks across the disk'
+complete -c nisemono -l allow-internal -d 'allow an internal disk'
+complete -c nisemono -l json -d 'print the result as one JSON object, for scripts'
+complete -c nisemono -l theme -r -a 'kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono' -d 'colours of the terminal interface'

@@ -1,0 +1,217 @@
+#!/bin/sh
+[ -n "${ZSH_VERSION:-}" ] && emulate sh
+
+for disk_inherited in $(env | sed -n 's/^\(DISK_[A-Za-z0-9_]*\)=.*/\1/p'); do
+  unset "${disk_inherited}"
+done
+
+disk_self="$0"
+case "${disk_self}" in
+*/*) ;;
+*) disk_self="$(command -v -- "${disk_self}")" ;;
+esac
+DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
+
+DISK_PROG=nisemono
+# shellcheck source=SCRIPTDIR/../lib/core.sh
+. "${DISK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
+. "${DISK_LIB}/ui.sh"
+# shellcheck source=SCRIPTDIR/../lib/cli.sh
+. "${DISK_LIB}/cli.sh"
+# shellcheck source=SCRIPTDIR/../lib/disk.sh
+. "${DISK_LIB}/disk.sh"
+# shellcheck source=SCRIPTDIR/../lib/io.sh
+. "${DISK_LIB}/io.sh"
+# shellcheck source=SCRIPTDIR/../lib/probe.sh
+. "${DISK_LIB}/probe.sh"
+# shellcheck source=SCRIPTDIR/../lib/refine.sh
+. "${DISK_LIB}/refine.sh"
+# shellcheck source=SCRIPTDIR/../lib/report.sh
+. "${DISK_LIB}/report.sh"
+
+disk_usage() {
+  if disk_ui_out; then
+    disk_usage_text | disk_ui_markdown | disk_gum format --theme "${DISK_UI_HELP}"
+    return 0
+  fi
+  disk_usage_text
+}
+
+disk_usage_text() {
+  cat <<'USAGE'
+nisemono - find out whether a card or USB drive holds what it claims
+
+usage:
+  nisemono                            pick a disk and probe it
+  nisemono probe [options] <device|mount_point>
+                                      test the disk in a few minutes
+  nisemono doctor                     check the tools nisemono needs
+  nisemono version                    print the version
+  nisemono help                       print this page
+
+options:
+  --samples N         test at least N blocks across the disk (default 256)
+  --allow-internal    allow an internal disk. the system disk is always refused
+  --json              print the result as one JSON object, for scripts
+  --theme NAME        colours of the terminal interface, see notes
+
+environment:
+  NISEMONO_SAMPLES=N, NISEMONO_ALLOW_INTERNAL=y and NISEMONO_JSON=y set the
+  same options. an option on the command line wins.
+
+notes:
+  A disk is named by its device, such as /dev/disk4, or by any volume mounted
+  from it, such as /Volumes/SD, which stands for the whole disk.
+
+  probe writes a tagged block on an even grid across the whole size the disk
+  reports, then reads every block back. A fake card hands back a block from a
+  lower address or loses it. probe then tests single blocks to find the exact
+  point where the real flash ends. probe overwrites the blocks it tests, so
+  copy anything you need first.
+
+  A fake verdict is proof. A pass means every tested block came back, which
+  catches the fakes sold today, but a card that wraps at an address no test
+  block lands on can still pass. A larger --samples narrows that gap.
+
+  On a terminal with gum installed, nisemono draws its prompts, summary and
+  progress with gum. --theme, else NISEMONO_THEME, else KODOUGU_THEME picks
+  the colours: kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord,
+  gruvbox, tokyo-night or mono. KODOUGU_ACCENT=#RRGGBB replaces only the
+  accent, and NO_COLOR turns colour off.
+
+examples:
+  nisemono probe /dev/disk4
+  nisemono probe /Volumes/SD
+  nisemono probe --json /dev/sdb
+USAGE
+}
+
+disk_option_flag() {
+  case "$1" in
+  --allow-internal) NISEMONO_ALLOW_INTERNAL=y ;;
+  --json) NISEMONO_JSON=y ;;
+  *) return 1 ;;
+  esac
+  return 0
+}
+
+disk_option_value() {
+  NISEMONO_SAMPLES="$2"
+  return 0
+}
+
+disk_check_samples() {
+  if ! disk_is_uint "$1" || [ "$1" -lt 1 ]; then
+    disk_error "--samples must be a whole number of 1 or more, got: $1"
+    return 1
+  fi
+  DISK_SAMPLES="$1"
+  return 0
+}
+
+disk_main() {
+  disk_mn_count=$#
+  disk_mn_literal=no
+  while [ "${disk_mn_count}" -gt 0 ]; do
+    disk_mn_arg="$1"
+    shift
+    disk_mn_count=$((disk_mn_count - 1))
+    case "${disk_mn_literal}:${disk_mn_arg}" in
+    no:--) disk_mn_literal=yes ;;
+    no:--theme=*)
+      DISK_THEME="${disk_mn_arg#--theme=}"
+      continue
+      ;;
+    no:--theme)
+      [ "${disk_mn_count}" -gt 0 ] || disk_main_stop "option '--theme' needs a value"
+      DISK_THEME="$1"
+      shift
+      disk_mn_count=$((disk_mn_count - 1))
+      continue
+      ;;
+    *) ;;
+    esac
+    set -- "$@" "${disk_mn_arg}"
+  done
+  disk_ui_setup || disk_main_fail "${DISK_UI_PROBLEM}"
+  disk_route "$@"
+}
+
+disk_main_stop() {
+  disk_cli_hint "$1"
+  exit 1
+}
+
+disk_main_fail() {
+  disk_error "$1"
+  exit 1
+}
+
+disk_route() {
+  case "${1:-}" in
+  help | -h | --help) disk_usage ;;
+  version | -V | --version) disk_cli_version ;;
+  doctor) disk_doctor ;;
+  probe)
+    shift
+    disk_parse "$@"
+    ;;
+  '') disk_start ;;
+  -*) disk_parse "$@" ;;
+  *)
+    disk_cli_hint "unknown command '$1'"
+    return 1
+    ;;
+  esac
+}
+
+disk_parse() {
+  DISK_VALUE_OPTIONS="--samples"
+  disk_pa_left="$#"
+  disk_pa_literal=0
+  while [ "${disk_pa_left}" -gt 0 ]; do
+    disk_pa_arg="$1"
+    shift
+    disk_pa_left=$((disk_pa_left - 1))
+    if [ "${disk_pa_literal}" -eq 1 ] || ! disk_cli_is_option "${disk_pa_arg}"; then
+      set -- "$@" "${disk_pa_arg}"
+    elif [ "${disk_pa_arg}" = "--" ]; then
+      disk_pa_literal=1
+    else
+      disk_cli_option "${disk_pa_arg}" "${disk_pa_left}" "${1:-}" || return 1
+      if [ "${DISK_CLI_USED}" -eq 1 ]; then
+        shift
+        disk_pa_left=$((disk_pa_left - 1))
+      fi
+    fi
+  done
+  disk_start "$@"
+}
+
+disk_start() {
+  if [ "$#" -gt 1 ]; then
+    disk_cli_hint "unexpected extra argument '$2'"
+    return 1
+  fi
+  if [ "$#" -eq 1 ]; then
+    disk_probe_report "$1"
+    return "$?"
+  fi
+  if disk_cli_interactive; then
+    disk_ask
+    return "$?"
+  fi
+  disk_cli_hint "no disk given"
+  return 1
+}
+
+disk_ask() {
+  if disk_ui_prompts; then
+    disk_ui_header
+  fi
+  disk_ak_disk="$(disk_pick_single "Probe which disk? Number or name: ")" || return 1
+  disk_probe_report "${disk_ak_disk}"
+}
+
+disk_main "$@"

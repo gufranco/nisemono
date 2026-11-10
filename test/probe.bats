@@ -36,8 +36,8 @@ probe() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${lines[-2]}" == "Result: 33 of 33 blocks read back as written" ]]
-  [[ "${lines[-1]}" == "No fault found. Every test block across the 32.0 MiB of ${target} came back as written." ]]
+  [[ "${lines[${#lines[@]} - 2]}" == "Result: 33 of 33 blocks read back as written" ]]
+  [[ "${lines[${#lines[@]} - 1]}" == "No fault found. Every test block across the 32.0 MiB of ${target} came back as written." ]]
 }
 
 @test "nisemono probe finds the exact end of the flash when writes past it are lost off the grid" {
@@ -50,8 +50,8 @@ probe() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${lines[-3]}" == "Result: 9.5 MiB (9961472 bytes) of the 32.0 MiB it reports" ]]
-  [[ "${lines[-1]}" == "Fake. ${target} holds 9.5 MiB, not 32.0 MiB." ]]
+  [[ "${lines[${#lines[@]} - 3]}" == "Result: 9.5 MiB (9961472 bytes) of the 32.0 MiB it reports" ]]
+  [[ "${lines[${#lines[@]} - 1]}" == "Fake. ${target} holds 9.5 MiB, not 32.0 MiB." ]]
 }
 
 @test "nisemono probe finds a wrap whose size is not a power of two" {
@@ -64,8 +64,8 @@ probe() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${lines[-3]}" == "Result: 9.5 MiB (9961472 bytes) of the 32.0 MiB it reports" ]]
-  [[ "${lines[-1]}" == "Fake. ${target} holds 9.5 MiB, not 32.0 MiB." ]]
+  [[ "${lines[${#lines[@]} - 3]}" == "Result: 9.5 MiB (9961472 bytes) of the 32.0 MiB it reports" ]]
+  [[ "${lines[${#lines[@]} - 1]}" == "Fake. ${target} holds 9.5 MiB, not 32.0 MiB." ]]
 }
 
 @test "nisemono probe names the real size of a disk that wraps past it" {
@@ -78,9 +78,9 @@ probe() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${lines[-3]}" == "Result: 8.0 MiB (8388608 bytes) of the 32.0 MiB it reports" ]]
-  [[ "${lines[-2]}" == "        24 blocks came back from a lower address, 0 were lost" ]]
-  [[ "${lines[-1]}" == "Fake. ${target} holds 8.0 MiB, not 32.0 MiB." ]]
+  [[ "${lines[${#lines[@]} - 3]}" == "Result: 8.0 MiB (8388608 bytes) of the 32.0 MiB it reports" ]]
+  [[ "${lines[${#lines[@]} - 2]}" == "        24 blocks came back from a lower address, 0 were lost" ]]
+  [[ "${lines[${#lines[@]} - 1]}" == "Fake. ${target} holds 8.0 MiB, not 32.0 MiB." ]]
 }
 
 @test "nisemono probe names the real size of a disk that loses writes past it" {
@@ -93,9 +93,9 @@ probe() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${lines[-3]}" == "Result: 8.0 MiB (8388608 bytes) of the 32.0 MiB it reports" ]]
-  [[ "${lines[-2]}" == "        0 blocks came back from a lower address, 25 were lost" ]]
-  [[ "${lines[-1]}" == "Fake. ${target} holds 8.0 MiB, not 32.0 MiB." ]]
+  [[ "${lines[${#lines[@]} - 3]}" == "Result: 8.0 MiB (8388608 bytes) of the 32.0 MiB it reports" ]]
+  [[ "${lines[${#lines[@]} - 2]}" == "        0 blocks came back from a lower address, 25 were lost" ]]
+  [[ "${lines[${#lines[@]} - 1]}" == "Fake. ${target} holds 8.0 MiB, not 32.0 MiB." ]]
 }
 
 @test "nisemono probe stops when a block fails while it narrows down the real size" {
@@ -142,7 +142,7 @@ exec \"\$REAL\" \"\$@\""
   local bytes
   bytes="$(disk_test_unique_bytes "${WORK}/card.img")"
   [[ "${status}" -eq 1 ]]
-  [[ "${lines[-1]}" == "Type ${target##*/} to probe, or anything else to stop: nisemono: warning: cancelled, nothing was touched." ]]
+  [[ "${lines[${#lines[@]} - 1]}" == "Type ${target##*/} to probe, or anything else to stop: nisemono: warning: cancelled, nothing was touched." ]]
   [[ "${bytes}" == "00" ]]
 }
 

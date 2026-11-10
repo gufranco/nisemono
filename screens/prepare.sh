@@ -6,10 +6,12 @@ demo=/Users/Shared/demo
 rm -rf "${demo}"
 mkdir -p "${demo}/bin"
 cp -f "${SCREENS_REPO}/test/shim/sudo" "${demo}/bin/sudo"
+cp -f "${SCREENS_REPO}/screens/fake-dd.sh" "${demo}/bin/dd"
+chmod 755 "${demo}/bin/dd"
 if [ -d /Volumes/USB ]; then
   hdiutil detach -quiet /Volumes/USB
 fi
-hdiutil create -quiet -size 16m -fs "MS-DOS FAT16" -volname USB -layout MBRSPUD "${demo}/usb.dmg"
+hdiutil create -quiet -size 64m -fs "MS-DOS FAT32" -volname USB -layout MBRSPUD "${demo}/usb.dmg"
 listing=$(hdiutil attach "${demo}/usb.dmg")
 device=$(printf '%s\n' "${listing}" | awk 'NR == 1 { print $1 }')
 mkdir -p /Volumes/USB/Photos

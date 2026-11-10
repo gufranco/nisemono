@@ -4,6 +4,8 @@
 
 <strong>Find out whether an SD card or USB drive holds what it claims, and how much it really holds.</strong>
 
+English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁體中文 (香港)](README.zh-HK.md)
+
 [![ci](https://img.shields.io/github/actions/workflow/status/gufranco/nisemono/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/gufranco/nisemono/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/gufranco/nisemono?style=flat-square&label=release)](https://github.com/gufranco/nisemono/releases/latest)
 [![license](https://img.shields.io/github/license/gufranco/nisemono?style=flat-square&label=license)](LICENSE)
@@ -19,6 +21,10 @@
 A counterfeit card reports more space than its flash holds. Files copied past the real flash land on top of earlier ones or vanish, and nothing complains until you open them. `nisemono`, 偽物, is Japanese for a fake. Its companions [kiyome](https://github.com/gufranco/kiyome) wipes disks and [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="nisemono probing a card in a terminal, from the command to the verdict" width="800">
+</p>
 
 ```console
 $ nisemono probe /dev/disk6
@@ -143,6 +149,35 @@ The disk holding the running system is always refused, internal disks are refuse
 
 Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites run on macOS under `/bin/sh`, `dash`, the system's bash 3.2 and zsh, and Homebrew's current bash and zsh, and on Ubuntu under `dash`, `bash`, `bash --posix` and `zsh` in a privileged container. Every run works on the six toolsets in [FAMILY.md](FAMILY.md), and `nisemono doctor` names the flavor and version of every core tool.
 
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded from a real run with <code>make screens</code></summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="nisemono: The typed name, under the danger box"><br><sub>The typed name, under the danger box</sub></td>
+<td width="50%" valign="top"><img src="screens/result.png" alt="nisemono: The verdict on a fake disk"><br><sub>The verdict on a fake disk</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/picker.png" alt="nisemono: The disk picker"><br><sub>The disk picker</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="nisemono: An error"><br><sub>An error</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="nisemono: doctor checks every tool it needs"><br><sub>doctor checks every tool it needs</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="nisemono: The version badge in six themes"><br><sub>The version badge in six themes</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="nisemono: The help page"><br><sub>The help page</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## Development
@@ -155,6 +190,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites r
 | `make test-all` | The same tests under every shell |
 | `make test-linux` | The same tests in an Ubuntu container |
 | `make coverage` | bashcov line coverage on this Mac and in the Ubuntu container, merged, with the 100% gate CI enforces |
+| `make screens` | Record the README screens from the real tool with VHS, on macOS |
 
 The tests attach file-backed disks with `hdiutil` or `losetup` and probe them for real. A fake card is played on Linux by a device-mapper table that repeats or drops part of the disk, and on macOS by a `dd` stand-in that remaps or drops the same offsets.
 

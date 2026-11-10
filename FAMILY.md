@@ -19,6 +19,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | kirisute | Cuts Game Boy Advance, DS, DSi and 3DS ROMs and PSP ISOs down to their real size, and renames them after their headers | [gufranco/kirisute](https://github.com/gufranco/kirisute) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
 | nazuke | Gives long names short, readable, unique ones, and renames a folder's files to them | [gufranco/nazuke](https://github.com/gufranco/nazuke) |
+| nisemono | Finds out whether an SD card or USB drive holds what it claims, and how much it really holds | [gufranco/nisemono](https://github.com/gufranco/nisemono) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
 
@@ -27,7 +28,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome nazuke shiwake yakitsuke; do
+for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome nazuke nisemono shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
@@ -81,7 +82,7 @@ The plain page has no colour, no emoji and no bracketed level tags. On a termina
 - Anything required and not given is asked for when stdin is a terminal: `Label [default]: ` on stderr, up to three tries for a required value.
 - Without a terminal the tool never waits on a prompt. It stops with the usage hint below.
 - A destructive step asks the person to type the device name: `Type disk4 to erase, or anything else to stop: `.
-- With no arguments on a terminal, a tool with several jobs offers a menu headed `What would you like to do?`, numbered on the plain interface and a `gum choose` list where gum draws; a tool with one job asks for its inputs directly.
+- With no arguments on a terminal, a tool with several jobs offers a menu headed `What would you like to do?`, numbered on the plain interface and a `gum choose` list where gum draws; a tool with one job asks for its inputs directly. A full-screen member, under Terminal interface, opens its app instead.
 - A member that takes a disk accepts its device, such as `/dev/disk4`, or any volume mounted from it, such as `/Volumes/USB`, and works on the whole disk behind the volume. Its README shows both forms.
 
 ## Output
@@ -113,6 +114,7 @@ Every member draws its terminal interface with [gum](https://github.com/charmbra
 - `gum style` drops colour it reads from stdin, so coloured text is passed to it as arguments. `gum spin` draws on stdout, so a member sends it to stderr and lets it wait on the step's process, which runs in the background with its diagnostics held in a file until the spinner stops. The step runs with `<PREFIX>_UI_STEP` set, so its warnings and errors are drawn as they would be on the terminal.
 - The palette comes from a theme: `--theme NAME`, else `<TOOL>_THEME`, else `KODOUGU_THEME`, else `kodougu`. The themes are `kodougu`, `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `nord`, `gruvbox`, `tokyo-night` and `mono`, each with an accent, ok, warning, error, muted, text and surface colour and a `gum format` style. `<TOOL>_ACCENT`, else `KODOUGU_ACCENT`, replaces only the accent with a colour such as `#CBA6F7`. An unknown theme or a malformed colour stops the tool with the bad value error below. `NO_COLOR` switches every theme to `mono`, since gum's `CLICOLOR_FORCE` outranks it.
 - `lib/ui.sh` holds the themes and every drawing helper, and `lib/table.awk` the table. A member calls them and never calls gum directly from its own modules.
+- A member whose work is a session over many fields, such as burning discs, may be full-screen: a bare command on a terminal opens an app in the alternate screen buffer that reads keys itself, redraws its whole frame within 250 ms, and hands one field at a time to a gum widget to edit. It draws its panes with escape sequences in the theme's colours, because a gum call per box misses that budget, and it restores the screen, cursor and echo on every exit, an interrupt included. Every job it offers is still a plain command for scripts, and without a terminal the app never opens.
 - `test/ui-kit.bats` calls every helper in `lib/ui.sh` directly, so each member covers the whole module whatever it draws. Tests drive the gum path with `<TOOL>_TEST_GUM=1` and `test/bin/gum`, a shim first on `PATH` in every test that records each call in `<TOOL>_TEST_GUM_LOG` and answers from `<TOOL>_TEST_GUM_ANSWERS`, one line per prompt, `<cancel>` for Escape. gum needs a terminal, so CI cannot run the real one; the screens below run the real one.
 - The tap's formula for every member depends on `gum`.
 

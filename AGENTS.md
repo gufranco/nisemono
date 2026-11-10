@@ -13,6 +13,7 @@ Guidance for anyone, human or agent, changing nisemono. What nisemono is and how
 | [`man/nisemono.1`](man/nisemono.1) | The man page |
 | [`completions/`](completions) | bash, zsh and fish completions |
 | [`test/`](test) | The `bats` suite, its helpers, the counterfeit stand-ins in [`test/fakes.bash`](test/fakes.bash), the fake `sudo` and the Linux container script |
+| [`screens/`](screens) | The VHS tapes and scripts behind `make screens`; [`screens/fake-dd.sh`](screens/fake-dd.sh) makes the demo disk image wrap every 16 MiB |
 | [`scripts/`](scripts) | Coverage, the coverage gate, the Linux coverage run and the name check, which `make` runs |
 | [`.github/scripts/`](.github/scripts) | The toolset helper and the release version stamp, which only CI and the release run |
 
@@ -45,5 +46,4 @@ Guidance for anyone, human or agent, changing nisemono. What nisemono is and how
 
 ## Gaps against FAMILY.md
 
-- The README is in English only; the Japanese, Simplified Chinese and Hong Kong Traditional Chinese READMEs are not written yet (as of 2026-11-10).
-- The screens are not recorded yet: `make screens` still needs tapes for probe (as of 2026-11-10).
+None (as of 2026-11-10). One departure from the Safety section is approved: each test block is its own `dd` call, recorded under Domain rules.

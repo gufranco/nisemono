@@ -7,7 +7,7 @@ Enter
 Sleep 1s
 Show
 Sleep 800ms
-Type "nisemono /Volumes/NOPE"
+Type "nisemono probe /Volumes/NOPE"
 Enter
 Sleep 3s
 Screenshot error.png

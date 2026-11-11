@@ -22,3 +22,15 @@ if ! grep -qF "${scrub}" "${root}/bin/nisemono"; then
   printf 'bin/nisemono must clear every inherited DISK_ variable before it starts\n' >&2
   exit 1
 fi
+
+forbidden=$(awk '
+  /\$\(dd / && !/tr -d/ { print FILENAME ":" FNR ": a dd read into a variable keeps its NUL bytes" }
+  /^[[:space:]]*\}[[:space:]]*>/ { print FILENAME ":" FNR ": a brace group closes on a redirect bashcov cannot count" }
+  /done[[:space:]]+[0-9]+</ { print FILENAME ":" FNR ": a loop redirects a fixed descriptor bashcov can take" }
+  /function[[:space:]]+(xor|and|or|compl|lshift|rshift|strftime|systime)[[:space:]]*\(/ { print FILENAME ":" FNR ": an awk function is named like a gawk built-in" }
+  /while[[:space:]]+![[:space:]]+mkdir/ { print FILENAME ":" FNR ": a lock is taken with mkdir" }
+' "${root}"/bin/* "${root}"/lib/*.sh)
+if [ -n "${forbidden}" ]; then
+  printf 'code FAMILY.md forbids:\n%s\n' "${forbidden}" >&2
+  exit 1
+fi

@@ -242,6 +242,7 @@ Every tool that can be installed in more than one version on a supported system 
 - Bytes are written with `printf '%b'` and octal escapes in the `\0ddd` form, never with a format string built at run time: BusyBox's `%b` reads only that form.
 - A read that can reach past the end of a file, such as `od -j` into a short image, sends its errors to `/dev/null` and treats the short read as absent: GNU and uutils `od` print `tried to skip past end of input`, BSD `od` prints nothing.
 - An awk program defines no function named like a gawk built-in, such as `xor`, `and`, `or`, `compl`, `lshift`, `rshift`, `strftime` or `systime`: gawk then refuses the whole program, and a step whose value comes back empty checks for it and stops rather than writing the empty value.
+- `scripts/check-names.sh` fails `make lint` on a `$(dd ...)` read without `tr -d`, a `} >file` line, a fixed descriptor redirect after `done`, an awk function named like a gawk built-in and a `mkdir` lock, so these rules hold without anyone remembering them.
 - No comments in source, apart from tool directives and the test markers.
 - Make targets, with the same meaning in every member:
 

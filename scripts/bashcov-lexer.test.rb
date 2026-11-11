@@ -28,6 +28,18 @@ NESTED_AWK = <<~'SH'
   }')"
 SH
 
+CLOSING_QUOTE_LINE = <<~'SH'
+  median() {
+    printf '%s\n' "$1" | awk '
+      NF { print $1 }
+    '
+  }
+
+  set_error() {
+    printf '%s\n' "$1"
+  }
+SH
+
 def lexed(text, hits)
   Dir.mktmpdir("bashcov-lexer") do |dir|
     path = File.join(dir, "sample.sh")
@@ -80,8 +92,17 @@ coverage = lexed(NESTED_AWK, substitution_ran)
 # Assert
 check.call("an awk program opened inside a command substitution shares its hit", coverage[1..2], [1, 1])
 
+# Arrange
+nothing_ran = {}
+
+# Act
+coverage = lexed(CLOSING_QUOTE_LINE, nothing_ran)
+
+# Assert
+check.call("a lone closing quote opens no new string", coverage[4..6], [nil, nil, nil])
+
 if failures.empty?
-  puts format("bashcov %<version>s lexer: 5 checks passed", version: Bashcov::VERSION)
+  puts format("bashcov %<version>s lexer: 6 checks passed", version: Bashcov::VERSION)
   exit 0
 end
 warn format("bashcov %<version>s lexer:", version: Bashcov::VERSION)

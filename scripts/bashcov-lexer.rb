@@ -29,3 +29,18 @@ end
 
 Bashcov::Lexer.send(:remove_const, :MULTILINE_PATTERNS)
 Bashcov::Lexer.const_set(:MULTILINE_PATTERNS, patterns.freeze)
+
+string_regexps = patterns.zip(shipped).reject { |(new, _), (old, _)| new.equal?(old) }.map(&:first).map(&:first)
+
+after_closing_quote = Module.new do
+  define_method(:mark_multiline) do |content, offset, lineno, regexp, forward: true|
+    start = offset
+    start = @closed_at if @closed_at.to_i > offset && !content[offset...@closed_at].include?("\n")
+    match = content.match(regexp, start)
+    last = super(content, start, lineno, regexp, forward: forward)
+    @closed_at = match.end(0) if last && match && string_regexps.any? { |string| string.equal?(regexp) }
+    last
+  end
+  private :mark_multiline
+end
+Bashcov::Lexer.prepend(after_closing_quote)

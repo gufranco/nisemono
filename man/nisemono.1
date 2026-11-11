@@ -7,6 +7,12 @@ nisemono \- find out whether a card or USB drive holds what it claims
 .B nisemono probe
 .RI [ options ] " device" | mount_point
 .br
+.B nisemono fill
+.I mount_point
+.br
+.B nisemono fix
+.IR device | mount_point
+.br
 .B nisemono doctor
 .br
 .B nisemono version
@@ -46,6 +52,19 @@ tests, and on a fake card it overwrites more, so copy anything you need first.
 .TP
 .B probe
 Test the disk and report its real size.
+.TP
+.B fill
+Fill the free space of a mounted volume with check files whose bytes encode
+their place, read every byte back past the cache, and remove them, also when
+interrupted. Files already on the volume are never touched. Slow, and
+destroys nothing.
+.TP
+.B fix
+Probe the disk and, when it is fake, write a new partition table with one FAT
+partition named NISEMONO that ends inside the real size. Everything on the
+disk is lost, after its name is typed back. Needs
+.B mformat
+from mtools.
 .TP
 .B doctor
 List the tools nisemono needs and whether each is installed. Exits non-zero only

@@ -385,18 +385,17 @@ exec \"\$REAL\" \"\$@\""
   [[ "${output}" =~ (^|$'\n')dd\ +missing\ +required ]]
 }
 
-@test "doctor warns about a missing fix tool on Linux without failing" {
+@test "doctor warns about a missing fix tool without failing" {
   # Arrange
-  [[ "${NISEMONO_TEST_OS}" == "Linux" ]] || skip "macOS partitions through diskutil"
   local farm
-  farm="$(disk_test_farm sfdisk)"
+  farm="$(disk_test_farm mformat)"
 
   # Act
   run disk_test_run_path "${farm}" nisemono doctor
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" =~ (^|$'\n')sfdisk\ +warn\ +fdisk\ package ]]
+  [[ "${output}" =~ (^|$'\n')mformat\ +warn\ +mtools\ package ]]
 }
 
 @test "nisemono runs when called by name from PATH" {

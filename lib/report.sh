@@ -46,7 +46,7 @@ disk_probe_prepare() {
   DISK_IDENTITY="$(disk_identity "$1")"
   disk_probe_size "$1" || return 1
   disk_probe_summary "$1"
-  disk_confirm_names "$1" probe || return 1
+  disk_confirm_names "$1" "${DISK_CONFIRM_VERB}" || return 1
   disk_pp_writable=0
   disk_writable_media "$1" || disk_pp_writable="$?"
   if [ "${disk_pp_writable}" -eq 1 ]; then

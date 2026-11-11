@@ -289,3 +289,22 @@ option_drift() {
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == "nisemono: unknown option '-x'. run 'nisemono help' for usage." ]]
 }
+
+@test "nisemono help, man page and completions list every command" {
+  # Arrange
+  local command missing=""
+
+  # Act
+  run disk_test_run nisemono help
+
+  # Assert
+  for command in probe fill fix; do
+    [[ "${output}" == *"nisemono ${command} "* ]] || missing="${missing} help:${command}"
+    grep -qF -- ".B nisemono ${command}" "${REPO_DIR}/man/nisemono.1" || missing="${missing} man:${command}"
+    grep -qE -- "words=\"[^\"]*\\b${command}\\b" "${REPO_DIR}/completions/nisemono.bash" || missing="${missing} bash:${command}"
+    grep -qF -- "'${command}:" "${REPO_DIR}/completions/_nisemono" || missing="${missing} zsh:${command}"
+    grep -qF -- "-a ${command} " "${REPO_DIR}/completions/nisemono.fish" || missing="${missing} fish:${command}"
+  done
+  [[ "${status}" -eq 0 ]]
+  [[ -z "${missing}" ]]
+}

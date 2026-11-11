@@ -23,5 +23,8 @@ docker run --rm --privileged \
       [ -e "/dev/loop$i" ] || mknod -m 660 "/dev/loop$i" b 7 "$i"
       i=$((i + 1))
     done
+    for stale in $(dmsetup ls 2>/dev/null | awk '"'"'/^nisemono-fake-/ { print $1 }'"'"'); do
+      dmsetup remove "$stale" 2>/dev/null || :
+    done
     exec "$@"
   ' sh "$@"

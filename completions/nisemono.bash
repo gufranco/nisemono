@@ -20,7 +20,7 @@ _nisemono() {
   fi
   words="$(compgen -f -- "${cur}" || true)"
   if [[ "${COMP_CWORD}" -eq 1 ]]; then
-    words="probe doctor version help"
+    words="probe fill fix doctor version help"
   fi
   COMPREPLY=($(compgen -W "${words}" -- "${cur}"))
 }

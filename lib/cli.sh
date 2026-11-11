@@ -125,11 +125,9 @@ disk_doctor_platform() {
   *)
     disk_doctor_tool lsblk "lists disks" || disk_dp_status=1
     disk_doctor_tool blockdev "reads disk sizes" || disk_dp_status=1
-    disk_doctor_optional sfdisk "fdisk package, needed only by fix"
-    disk_doctor_optional mkfs.fat "dosfstools package, needed only by fix"
-    disk_doctor_optional mkfs.exfat "exfatprogs package, needed only by fix"
     ;;
   esac
+  disk_doctor_optional mformat "mtools package, needed only by fix"
   return "${disk_dp_status}"
 }
 
@@ -163,6 +161,22 @@ disk_doctor() {
 disk_cli_interactive() {
   [ "${NISEMONO_INTERACTIVE:-}" = 1 ] && return 0
   [ -t 0 ]
+}
+
+disk_prompt() {
+  if disk_ui_prompts; then
+    disk_pq_answer="$(disk_ui_input "$1" "${2:-$1}")" || return 1
+    printf '%s\n' "${disk_pq_answer:-$2}"
+    return 0
+  fi
+  if [ -n "$2" ]; then
+    printf '%s [%s]: ' "$1" "$2" >&2
+  else
+    printf '%s: ' "$1" >&2
+  fi
+  disk_pq_typed=""
+  IFS= read -r disk_pq_typed || [ -n "${disk_pq_typed}" ] || return 1
+  printf '%s\n' "${disk_pq_typed:-$2}"
 }
 
 disk_pick_single() {

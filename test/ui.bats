@@ -51,7 +51,7 @@ untouched() {
   # Arrange
   local bar
   bar="$(printf '\342\224\201')"
-  answers "${DEVICE}" "${NAME}"
+  answers "1" "${DEVICE}" "${NAME}"
 
   # Act
   run disk_test_run nisemono </dev/null
@@ -62,6 +62,7 @@ untouched() {
   [[ "${output}" == *"Device:"*"${DEVICE}"* ]]
   [[ "${output}" == *"${bar}"* ]]
   [[ "${output}" == *"No fault found. Every test block across the 2.0 MiB of ${DEVICE} came back as written."* ]]
+  called "choose --header What would you like to do?"
   called "choose --header Probe which disk?"
   called "--border thick"
   called "input --header Type ${NAME} to probe"
@@ -69,7 +70,7 @@ untouched() {
 
 @test "a cancelled disk pick probes nothing" {
   # Arrange
-  answers "<cancel>"
+  answers "1" "<cancel>"
 
   # Act
   run disk_test_run nisemono </dev/null
@@ -81,7 +82,7 @@ untouched() {
 
 @test "a wrong name typed into gum probes nothing" {
   # Arrange
-  answers "disk999"
+  answers "1" "disk999"
 
   # Act
   run disk_test_run nisemono probe "${DEVICE}" </dev/null
@@ -94,7 +95,7 @@ untouched() {
 
 @test "a cancelled typed name probes nothing" {
   # Arrange
-  answers "<cancel>"
+  answers "1" "<cancel>"
 
   # Act
   run disk_test_run nisemono probe "${DEVICE}" </dev/null
@@ -145,18 +146,17 @@ untouched() {
   [[ "${output}" == *"ERROR nisemono: a required tool is missing."* ]]
 }
 
-@test "doctor draws a missing fix tool as a warning on Linux" {
+@test "doctor draws a missing fix tool as a warning" {
   # Arrange
-  [[ "${NISEMONO_TEST_OS}" == "Linux" ]] || skip "macOS partitions through diskutil"
   local farm
-  farm="$(disk_test_farm mkfs.exfat)"
+  farm="$(disk_test_farm mformat)"
 
   # Act
   run disk_test_run_path "${farm}" nisemono doctor </dev/null
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"mkfs.exfat"*"warn"*"exfatprogs package, needed only by fix"* ]]
+  [[ "${output}" == *"mformat"*"warn"*"mtools package, needed only by fix"* ]]
 }
 
 @test "doctor fails without gum" {
@@ -269,4 +269,17 @@ untouched() {
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"%"*$'\n'"Bypassing the page cache."* ]]
+}
+
+@test "the menu asks for the volume to fill in a gum input" {
+  # Arrange
+  answers "2" ""
+
+  # Act
+  run disk_test_run nisemono </dev/null
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  called "input --header Mounted volume to fill"
+  [[ "${output}" == *"fill needs a mounted volume"* ]]
 }

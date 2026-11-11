@@ -1,4 +1,6 @@
 complete -c nisemono -n __fish_use_subcommand -a probe -d 'test the disk in a few minutes'
+complete -c nisemono -n __fish_use_subcommand -a fill -d 'fill free space with check files and read them back'
+complete -c nisemono -n __fish_use_subcommand -a fix -d 'shrink a fake disk to its real size'
 complete -c nisemono -n __fish_use_subcommand -a doctor -d 'check the tools nisemono needs'
 complete -c nisemono -n __fish_use_subcommand -a version -d 'print the version'
 complete -c nisemono -n __fish_use_subcommand -a help -d 'print usage'

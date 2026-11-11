@@ -138,6 +138,10 @@ for word in \"\$@\"; do
 done
 past=0
 [ \$((at * bs)) -ge \"\$fake_real\" ] && past=1
+case \" \$* \" in
+*\" if=\$fake_device \"* | *\" of=\$fake_device \"*) ;;
+*) past=0 ;;
+esac
 count=\$#
 for word in \"\$@\"; do
   if [ \"\$past\" = 1 ]; then
@@ -174,13 +178,17 @@ fake_counterfeit_mapper() {
     start=$((start + length))
   done
   FAKE_MAPPER="nisemono-fake-$$-${BATS_TEST_NUMBER:-0}"
+  printf '%s\n' "${FAKE_MAPPER}" >"${WORK:?}/fake-mapper"
   printf '%s' "${table}" | sudo dmsetup create --noudevsync "${FAKE_MAPPER}" || return 1
   sudo dmsetup mknodes "${FAKE_MAPPER}" >/dev/null 2>&1 || return 1
   printf '/dev/mapper/%s\n' "${FAKE_MAPPER}"
 }
 
 fake_counterfeit_release() {
-  [[ -n "${FAKE_MAPPER:-}" ]] || return 0
-  sudo dmsetup remove "${FAKE_MAPPER}" >/dev/null 2>&1 || true
+  local mapper="${FAKE_MAPPER:-}"
+  [[ -n "${mapper}" || ! -f "${WORK}/fake-mapper" ]] || mapper="$(cat "${WORK}/fake-mapper")"
+  [[ -n "${mapper}" ]] || return 0
+  sudo dmsetup remove "${mapper}" >/dev/null 2>&1 || true
+  rm -f "${WORK}/fake-mapper"
   FAKE_MAPPER=""
 }

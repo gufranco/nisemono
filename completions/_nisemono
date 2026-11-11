@@ -4,6 +4,8 @@ _nisemono() {
   local -a commands
   commands=(
     'probe:test the disk in a few minutes'
+    'fill:fill free space with check files and read them back'
+    'fix:shrink a fake disk to its real size'
     'doctor:check the tools nisemono needs'
     'version:print the version'
     'help:print usage'

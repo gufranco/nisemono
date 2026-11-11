@@ -29,6 +29,10 @@ DISK_PROG=nisemono
 . "${DISK_LIB}/refine.sh"
 # shellcheck source=SCRIPTDIR/../lib/report.sh
 . "${DISK_LIB}/report.sh"
+# shellcheck source=SCRIPTDIR/../lib/fill.sh
+. "${DISK_LIB}/fill.sh"
+# shellcheck source=SCRIPTDIR/../lib/fix.sh
+. "${DISK_LIB}/fix.sh"
 
 disk_usage() {
   if disk_ui_out; then
@@ -43,9 +47,13 @@ disk_usage_text() {
 nisemono - find out whether a card or USB drive holds what it claims
 
 usage:
-  nisemono                            pick a disk and probe it
+  nisemono                            pick a job from a menu
   nisemono probe [options] <device|mount_point>
                                       test the disk in a few minutes
+  nisemono fill <mount_point>         fill a volume's free space with check
+                                      files and read every byte back
+  nisemono fix <device|mount_point>   probe, then shrink a fake disk to one
+                                      partition inside its real size
   nisemono doctor                     check the tools nisemono needs
   nisemono version                    print the version
   nisemono help                       print this page
@@ -69,6 +77,15 @@ notes:
   lower address or loses it. probe then tests single blocks to find the exact
   point where the real flash ends. probe overwrites the blocks it tests, so
   copy anything you need first.
+
+  fill writes check files into the free space of a mounted volume, never
+  touching the files already there, reads every byte back past the cache,
+  and removes them, also when interrupted. It is slow, and it needs no
+  typed name because it destroys nothing.
+
+  fix probes the disk, and when it is fake writes a new partition table
+  with one FAT partition named NISEMONO that ends inside the real size.
+  Everything on the disk is lost. It needs mformat from mtools.
 
   A fake verdict is proof. A pass means every tested block came back, which
   catches the fakes sold today, but a card that wraps at an address no test
@@ -157,6 +174,11 @@ disk_route() {
     shift
     disk_parse "$@"
     ;;
+  fill | fix)
+    DISK_COMMAND="$1"
+    shift
+    disk_parse "$@"
+    ;;
   '') disk_start ;;
   -*) disk_parse "$@" ;;
   *)
@@ -194,22 +216,77 @@ disk_start() {
     disk_cli_hint "unexpected extra argument '$2'"
     return 1
   fi
+  case "${DISK_COMMAND}" in
+  fill | fix)
+    disk_start_named "$@"
+    return "$?"
+    ;;
+  *) : ;;
+  esac
   if [ "$#" -eq 1 ]; then
     disk_probe_report "$1"
     return "$?"
   fi
   if disk_cli_interactive; then
-    disk_ask
+    disk_menu
     return "$?"
   fi
   disk_cli_hint "no disk given"
   return 1
 }
 
-disk_ask() {
+disk_start_named() {
+  if [ "$#" -eq 1 ]; then
+    "disk_${DISK_COMMAND}_report" "$1"
+    return "$?"
+  fi
+  case "${DISK_COMMAND}" in
+  fill) disk_cli_hint "fill needs a mounted volume" ;;
+  *) disk_cli_hint "fix needs a disk" ;;
+  esac
+  return 1
+}
+
+disk_menu_choice() {
   if disk_ui_prompts; then
     disk_ui_header
+    printf '%s\n' "probe a disk in a few minutes|1" "fill a mounted volume and read it all back|2" "shrink a fake disk to its real size|3" "check this machine|4" |
+      disk_ui_choose "What would you like to do?" --label-delimiter "|"
+    return
   fi
+  printf '%s\n' "What would you like to do?" "  1) probe a disk in a few minutes" "  2) fill a mounted volume and read it all back" "  3) shrink a fake disk to its real size" "  4) check this machine" >&2
+  disk_prompt "Choice" 1
+}
+
+disk_menu() {
+  disk_mu_choice="$(disk_menu_choice)" || return 1
+  case "${disk_mu_choice}" in
+  1) disk_ask ;;
+  2) disk_ask_volume ;;
+  3) disk_ask_fix ;;
+  4) disk_doctor ;;
+  *)
+    disk_cli_hint "unknown choice '${disk_mu_choice}'"
+    return 1
+    ;;
+  esac
+}
+
+disk_ask_volume() {
+  disk_av_volume="$(disk_prompt "Mounted volume to fill" "")" || return 1
+  if [ -z "${disk_av_volume}" ]; then
+    disk_cli_hint "fill needs a mounted volume"
+    return 1
+  fi
+  disk_fill_report "${disk_av_volume}"
+}
+
+disk_ask_fix() {
+  disk_af_disk="$(disk_pick_single "Fix which disk? Number or name: ")" || return 1
+  disk_fix_report "${disk_af_disk}"
+}
+
+disk_ask() {
   disk_ak_disk="$(disk_pick_single "Probe which disk? Number or name: ")" || return 1
   disk_probe_report "${disk_ak_disk}"
 }

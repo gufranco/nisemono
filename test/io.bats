@@ -29,7 +29,7 @@ probing() {
 }
 
 picking() {
-  printf '%b' "$1" | NISEMONO_INTERACTIVE=1 disk_test_run nisemono
+  printf '1\n%b' "$1" | NISEMONO_INTERACTIVE=1 disk_test_run nisemono
 }
 
 write_dd() {
@@ -274,4 +274,84 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"Ejected. ${DEVICE} is safe to remove."* ]]
+}
+
+@test "the menu checks this machine" {
+  # Arrange
+  local choice=4
+
+  # Act
+  run menu "${choice}\n"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"What would you like to do?"*"  4) check this machine"* ]]
+  [[ "${output}" == *"dd"*"ok"* ]]
+}
+
+@test "the menu asks for a volume to fill and needs one" {
+  # Arrange
+  local answers="2\n\n"
+
+  # Act
+  run menu "${answers}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"Mounted volume to fill: "* ]]
+  [[ "${output}" == *"nisemono: fill needs a mounted volume. run 'nisemono help' for usage." ]]
+}
+
+@test "the menu fills the volume it is given" {
+  # Arrange
+  local answers="2\n${WORK}/nowhere\n"
+
+  # Act
+  run menu "${answers}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"nisemono: not a mounted volume: ${WORK}/nowhere" ]]
+}
+
+@test "the menu picks the disk to fix and stops on a wrong typed name" {
+  # Arrange
+  local answers="3\n${NAME}\nn\n"
+
+  # Act
+  run menu "${answers}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"Fix which disk? Number or name: "* ]]
+  [[ "${output}" == *"Type ${NAME} to probe and repartition, or anything else to stop: "* ]]
+  [[ "${output}" == *"cancelled, nothing was touched."* ]]
+}
+
+@test "the menu refuses a choice it does not offer" {
+  # Arrange
+  local choice=9
+
+  # Act
+  run menu "${choice}\n"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"nisemono: unknown choice '9'. run 'nisemono help' for usage." ]]
+}
+
+@test "the menu stops when no choice is given" {
+  # Arrange
+  local answers=""
+
+  # Act
+  run menu "${answers}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "What would you like to do?"*"Choice [1]: " ]]
+}
+
+menu() {
+  printf '%b' "$1" | NISEMONO_INTERACTIVE=1 disk_test_run nisemono
 }

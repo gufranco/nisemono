@@ -9,7 +9,7 @@ Guidance for anyone, human or agent, changing nisemono. What nisemono is and how
 | Path | Holds |
 |:-----|:------|
 | [`bin/nisemono`](bin/nisemono) | The entry point: usage, options and command routing |
-| [`lib/`](lib) | The modules. [`lib/state.sh`](lib/state.sh) declares every global; [`lib/probe.sh`](lib/probe.sh) runs the grid pass and [`lib/refine.sh`](lib/refine.sh) narrows a fake down to its exact size |
+| [`lib/`](lib) | The modules. [`lib/state.sh`](lib/state.sh) declares every global; [`lib/probe.sh`](lib/probe.sh) runs the grid pass, [`lib/refine.sh`](lib/refine.sh) narrows a fake down to its exact size, [`lib/fill.sh`](lib/fill.sh) checks a volume's free space and [`lib/fix.sh`](lib/fix.sh) repartitions a fake |
 | [`man/nisemono.1`](man/nisemono.1) | The man page |
 | [`completions/`](completions) | bash, zsh and fish completions |
 | [`test/`](test) | The `bats` suite, its helpers, the counterfeit stand-ins in [`test/fakes.bash`](test/fakes.bash), the fake `sudo` and the Linux container script |
@@ -25,7 +25,9 @@ Guidance for anyone, human or agent, changing nisemono. What nisemono is and how
 
 ## Behaviour
 
-- nisemono has one job today, so a bare `nisemono` on a terminal asks for the disk directly and probes it.
+- nisemono has three jobs, probe, fill and fix, so a bare `nisemono` on a terminal opens the menu.
+- `fill` writes 1 MiB blocks into `.nisemono-<code>` on the volume, each a 64-byte header naming the run code and block index and a random filler shared by the run, reads them back with `iflag=direct` on Linux, or after dropping the page cache, and after remounting at the same mount point on macOS, then removes the folder, also on an interrupt.
+- `fix` probes first, stops on a pass, and on a fake builds a sparse image of the real size rounded down to a MiB with an MBR partition at 1 MiB and a FAT16 filesystem, FAT32 past 2 GiB, made by `mformat`, then writes only up to the end of its FAT metadata, the way kakikomi's format does.
 - The verdict is `pass` or `fake`. A fake verdict is proof; a pass never claims the card is genuine, only that every test block came back.
 - `--json` reports the disk, the size it reports, its real size, the size up to the last block that read back, the verdict, and the counts of grid blocks that read back, came back from a lower address and were lost.
 
@@ -36,13 +38,14 @@ Guidance for anyone, human or agent, changing nisemono. What nisemono is and how
 - The grid step is a power of two, so a wrap at any power of two at or above the step makes two grid blocks collide. Fake controllers wrap that way because they ignore high address bits.
 - Tags carry a random code per run, so a block left by an earlier run never counts as this run's.
 - Each test block is one `dd` call, because `dd` seeks once per call and the blocks are scattered across the disk.
-- Tests play a fake card on Linux with a device-mapper table over a loop device, and on macOS with a `dd` stand-in that remaps or drops offsets past the real size.
+- A device-mapper table lives in the kernel of the VM every container shares, so a leaked one keeps its loop device busy for every later run. `fake_counterfeit` runs inside `$(...)`, so it records its table's name in `$WORK/fake-mapper` for teardown to remove, and [`test/linux-container.sh`](test/linux-container.sh) removes any `nisemono-fake-*` table left by an earlier run before the suite starts.
+- Tests play a fake card on Linux with a device-mapper table over a loop device, and on macOS with a `dd` stand-in that remaps or drops offsets past the real size, only for a `dd` that reads or writes the fake device.
 - The bytes a `dd` moved come from its bytes line; BusyBox's `dd` prints only record counts, so there the count is the whole records out times the block size.
 
 ## Release
 
 - `NISEMONO_VERSION` lives in [`lib/core.sh`](lib/core.sh).
-- The tap's `Formula/nisemono.rb` depends on `gum`.
+- The tap's `Formula/nisemono.rb` depends on `gum` and `mtools`.
 
 ## Gaps against FAMILY.md
 

@@ -54,6 +54,7 @@ Fake. /dev/disk6 holds 9.5 MiB, not 32.0 MiB.
 | [`gum`](https://github.com/charmbracelet/gum) | The terminal interface: prompts, tables and colours | `brew install gum`. Installed automatically by the Homebrew formula |
 | POSIX `sh`, `dd`, `cmp`, `od`, `head`, `tr` | The tool itself | Preinstalled on macOS and Linux. `bash` is not required |
 | `diskutil` and `plutil`, or `lsblk` and `blockdev` | Disk details on macOS, or on Linux | Preinstalled |
+| `mformat` from mtools | Only `fix`, which builds the new FAT filesystem | `brew install mtools` or `apt install mtools`. Installed automatically by the Homebrew formula |
 
 ### Install
 
@@ -93,7 +94,9 @@ plutil             ok       /usr/bin/plutil
 | Command | Purpose |
 |:--------|:--------|
 | `nisemono probe [options] <device\|mount_point>` | Test the disk in a few minutes and report its real size |
-| `nisemono` with no arguments | Pick a disk and probe it, when run in a terminal |
+| `nisemono fill <mount_point>` | Fill a volume's free space with check files, read every byte back and remove them. Slow, and it touches none of your files |
+| `nisemono fix <device\|mount_point>` | Probe the disk and, when it is fake, give it one FAT partition inside its real size. Everything on it is lost |
+| `nisemono` with no arguments | Pick a job from a menu, when run in a terminal |
 | `nisemono doctor` | List the tools nisemono needs and whether they are installed |
 | `nisemono version`, `nisemono help` | Print the version or the full usage page |
 
@@ -111,6 +114,8 @@ nisemono probe /dev/disk4                  # test the card in disk4
 nisemono probe /Volumes/SD                 # a mounted volume stands for its whole disk
 nisemono probe --samples 4096 /dev/sdb     # a finer grid, slower
 nisemono probe --json /dev/disk4           # one JSON object, for scripts
+nisemono fill /Volumes/SD                  # check every free byte, keep your files
+nisemono fix /dev/disk4                    # shrink a fake card to what it really holds
 ```
 
 The probe overwrites the blocks it tests, and on a fake card it overwrites more, so copy anything you need off the card first. nisemono follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).

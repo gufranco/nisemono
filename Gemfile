@@ -2,5 +2,5 @@
 
 source "https://rubygems.org"
 
-gem "bashcov", "4.0.0"
+gem "bashcov", "4.0.2"
 gem "simplecov", "1.3.2"

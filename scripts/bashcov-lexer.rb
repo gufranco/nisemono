@@ -1,0 +1,31 @@
+# frozen_string_literal: true
+
+require "bashcov"
+require "bashcov/lexer"
+
+unbalanced_lead = /\G[^\n]+(?:[ \t=]|\\\n[ \t]*)+/.source
+paired_leads = {
+  "'" => /\G(?:[^\n']|'[^'\n]*')+(?:[ \t=]|\\\n[ \t]*)+/.source,
+  '"' => /\G(?:[^\n"\\]|\\[^\n]|"(?:[^"\\\n]|\\[^\n])*")+(?:[ \t=]|\\\n[ \t]*)+/.source,
+}
+string_patterns = 4
+
+shipped = Bashcov::Lexer::MULTILINE_PATTERNS
+patterns = shipped.map do |regexp, forward|
+  source = regexp.source
+  rest = source.delete_prefix(unbalanced_lead)
+  lead = paired_leads[rest[0]] if source.start_with?(unbalanced_lead)
+  next [regexp, forward] unless lead
+
+  [Regexp.new(lead + rest, regexp.options), forward]
+end
+
+rewritten = patterns.zip(shipped).count { |(new, _), (old, _)| !new.equal?(old) }
+unless rewritten == string_patterns
+  abort format("coverage: bashcov %<version>s has %<found>d multiline string patterns where %<expected>d " \
+               "were expected, so scripts/bashcov-lexer.rb no longer fits its lexer.",
+               version: Bashcov::VERSION, found: rewritten, expected: string_patterns)
+end
+
+Bashcov::Lexer.send(:remove_const, :MULTILINE_PATTERNS)
+Bashcov::Lexer.const_set(:MULTILINE_PATTERNS, patterns.freeze)

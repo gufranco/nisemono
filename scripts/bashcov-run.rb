@@ -6,6 +6,7 @@ Bashcov.parse_options!(ARGV)
 
 require "bashcov/runner"
 require "io/nonblock"
+require_relative "bashcov-lexer"
 
 blocking_pipe = Module.new do
   define_method(:initialize) do |field_stream|

@@ -34,6 +34,13 @@ if ! BUNDLE_GEMFILE="${root}/Gemfile" "${ruby_bin}" -rbundler/setup -e '' 2>"${w
   exit 1
 fi
 
+if ! BUNDLE_GEMFILE="${root}/Gemfile" "${ruby_bin}" -rbundler/setup "${root}/scripts/bashcov-lexer.test.rb" \
+  >/dev/null 2>"${wrapper_dir}/lexer.err"; then
+  printf 'coverage: bashcov miscounts the lines after a quoted string, so scripts/bashcov-lexer.rb needs updating.\n' >&2
+  cat "${wrapper_dir}/lexer.err" >&2
+  exit 1
+fi
+
 probe_root="${wrapper_dir}/probe"
 mkdir -p "${probe_root}/coverage"
 probe="${probe_root}/probe.sh"

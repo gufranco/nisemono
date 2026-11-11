@@ -30,6 +30,7 @@ forbidden=$(awk '
   /function[[:space:]]+(xor|and|or|compl|lshift|rshift|strftime|systime)[[:space:]]*\(/ { print FILENAME ":" FNR ": an awk function is named like a gawk built-in" }
   /while[[:space:]]+![[:space:]]+mkdir/ { print FILENAME ":" FNR ": a lock is taken with mkdir" }
   /wc -c[[:space:]]*</ { print FILENAME ":" FNR ": a file size is read with wc, which BusyBox counts in 32 bits" }
+  /%\.\*\}\.bak|\$\/\.bak\// { print FILENAME ":" FNR ": a backup name drops the extension of the file it keeps" }
 ' "${root}"/bin/* "${root}"/lib/*.sh)
 if [ -n "${forbidden}" ]; then
   printf 'code FAMILY.md forbids:\n%s\n' "${forbidden}" >&2

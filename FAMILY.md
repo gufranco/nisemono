@@ -45,6 +45,8 @@ A member that replaces a script in the owner's dotfiles, such as a zsh module, r
 
 A rule the owner sets for any member is written here and applied to every member, so they keep one style and one standard of quality. A rule that needs changing is changed in every member in the same task. The family is also the owner's reference standard: another of his projects that is refactored adopts these rules wherever they apply.
 
+Every feature of every member works in full on both Linux and macOS: each command, option, screen and output behaves the same on both, and the Linux and macOS test legs both drive it. A tool that one platform lacks is never a reason to drop the feature there; the member uses another tool that exists there, ships the dependency through its formula and `doctor`, or implements the missing piece itself. A feature that works on one platform only is a gap: it is listed under Gaps against FAMILY.md in that member's `AGENTS.md`, closed before the next release, and never described in the docs as finished.
+
 The Homebrew tap that ships the members, [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap), is not a member: it also carries tools and apps outside the family.
 
 ## Commands

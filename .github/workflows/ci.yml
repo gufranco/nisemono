@@ -81,11 +81,20 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y -qq mandoc
+          sudo apt-get install -y -qq mandoc yamllint
+      - name: Install actionlint
+        run: |
+          set -euo pipefail
+          gh release download v1.7.12 --repo rhysd/actionlint \
+            --pattern 'actionlint_1.7.12_linux_amd64.tar.gz' --output actionlint.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  actionlint.tar.gz" | sha256sum -c -
+          tar -xzf actionlint.tar.gz actionlint
+          sudo install -m 755 actionlint /usr/local/bin/actionlint
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: shfmt, ShellCheck and mandoc at zero findings
         run: make lint
-      - name: yamllint
-        run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
   test-linux:
     name: test (linux, ${{ matrix.shell }}, ${{ matrix.toolset }})

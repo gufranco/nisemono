@@ -3,7 +3,7 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${DISK_LIB:?}/state.sh"
 
-NISEMONO_VERSION="0.1.0"
+NISEMONO_VERSION="1.0.0"
 
 disk_version() {
   printf '%s %s\n' "${1:-${DISK_PROG}}" "${NISEMONO_VERSION}"

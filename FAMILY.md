@@ -232,6 +232,7 @@ Every tool that can be installed in more than one version on a supported system 
 - Tests never write the member's version as a literal; they read it from `lib/core.sh`, so a release does not break them.
 - A wait loop polls from milliseconds upward, never with a fixed `sleep 1`. On a runner without `timeout`, a one-second poll per `dd` made two members ten times slower.
 - Every test is three blocks, opened by the bare markers `# Arrange`, `# Act` and `# Assert`.
+- A test that starts background work waits on the process IDs it collected from `$!`, never with a bare `wait`: CI sets `BATS_TEST_TIMEOUT`, and bats runs that timeout as a background watchdog in the test's own shell, so a bare `wait` blocks until the timeout ends the test. `scripts/check-names.sh` fails on a bare `wait` in `test/`.
 
 ## Quality
 
@@ -242,7 +243,8 @@ Every tool that can be installed in more than one version on a supported system 
 - Bytes are written with `printf '%b'` and octal escapes in the `\0ddd` form, never with a format string built at run time: BusyBox's `%b` reads only that form.
 - A read that can reach past the end of a file, such as `od -j` into a short image, sends its errors to `/dev/null` and treats the short read as absent: GNU and uutils `od` print `tried to skip past end of input`, BSD `od` prints nothing.
 - An awk program defines no function named like a gawk built-in, such as `xor`, `and`, `or`, `compl`, `lshift`, `rshift`, `strftime` or `systime`: gawk then refuses the whole program, and a step whose value comes back empty checks for it and stops rather than writing the empty value.
-- `scripts/check-names.sh` fails `make lint` on a `$(dd ...)` read without `tr -d`, a `} >file` line, a fixed descriptor redirect after `done`, an awk function named like a gawk built-in and a `mkdir` lock, so these rules hold without anyone remembering them.
+- A file's size comes from `stat -c %s`, or `stat -f %z` where `stat` is BSD's, never `wc -c <file`: Ubuntu's BusyBox `wc` counts in 32 bits and reported 620232704 for a 4,915,200,123-byte image. A stream that can pass 4 GiB is counted, where `wc` is BusyBox's, as whole 1 MiB blocks from `dd iflag=fullblock` plus a `wc -c` of what follows them, read again with `skip`. Each member tests its size helper on a sparse file past 4 GiB.
+- `scripts/check-names.sh` fails `make lint` on a `$(dd ...)` read without `tr -d`, a `} >file` line, a fixed descriptor redirect after `done`, an awk function named like a gawk built-in, a `mkdir` lock and a `wc -c <file` size, so these rules hold without anyone remembering them.
 - No comments in source, apart from tool directives and the test markers.
 - Make targets, with the same meaning in every member:
 

@@ -186,6 +186,7 @@ Every tool that can be installed in more than one version on a supported system 
 ## Safety
 
 - A file is written to a temporary file beside it, then renamed over it with `mv -f`, so an interrupted run never leaves half a file. A file the person did not name is never overwritten, and a step that fails leaves the original exactly as it was.
+- Two runs that can rewrite the same file take a lock first: a lock file created under `set -C`, which the shell opens exclusively, holding the run's process ID and removed when the run ends. A lock is never a `mkdir`: the uutils `mkdir` 0.10.0 that Ubuntu 26.04 ships let two processes create the same directory 82 to 98 times in 400 contended takes, where GNU `mkdir` and `set -C` gave none. A test runs ten such writers at once and checks that every write landed.
 - Files are found with shell globs, never by parsing `ls` or `find` output, so any name, with spaces, brackets or a newline, passes through intact.
 - An external command runs once per batch of items, never once per item, such as one `mv` for a batch of files.
 - Every external dependency works with the version the current Ubuntu LTS packages and with the current one Homebrew ships. An optional flag is detected once per run, from the tool's own `--help` or `--version`, and used only when it is there.

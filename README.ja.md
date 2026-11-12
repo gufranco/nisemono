@@ -54,6 +54,7 @@ Fake. /dev/disk6 holds 9.5 MiB, not 32.0 MiB.
 | [`gum`](https://github.com/charmbracelet/gum) | 端末インターフェース: プロンプト、表、色 | `brew install gum`。Homebrew の formula が自動で入れます |
 | POSIX `sh`、`dd`、`cmp`、`od`、`head`、`tr` | ツール本体 | macOS と Linux に標準で入っています。`bash` は不要です |
 | `diskutil` と `plutil`、または `lsblk` と `blockdev` | macOS または Linux でのディスク情報 | 標準で入っています |
+| mtools の `mformat` | `fix` が新しい FAT ファイルシステムを作るときだけ | `brew install mtools` または `apt install mtools`。Homebrew の formula が自動で入れます |
 
 ### インストール
 
@@ -86,6 +87,7 @@ tr                 ok       /opt/homebrew/opt/coreutils/libexec/gnubin/tr, gnu 9
 sudo               ok       /usr/bin/sudo
 diskutil           ok       /usr/sbin/diskutil
 plutil             ok       /usr/bin/plutil
+mformat            ok       /opt/homebrew/bin/mformat
 ```
 
 ## 使い方
@@ -93,6 +95,9 @@ plutil             ok       /usr/bin/plutil
 | コマンド | 目的 |
 |:--------|:--------|
 | `nisemono probe [options] <device\|mount_point>` | 数分でディスクを調べ、実際の容量を報告します |
+| `nisemono fill <mount_point>` | ボリュームの空き領域を確認用ファイルで埋め、全バイトを読み戻してから削除します。時間はかかりますが、あなたのファイルには触れません |
+| `nisemono fix <device\|mount_point>` | ディスクを調べ、偽物なら実際の容量の内側に FAT パーティションを 1 つ作ります。中身はすべて消えます |
+| 引数なしの `nisemono` | 端末で実行すると、メニューから作業を選べます |
 | 引数なしの `nisemono` | 端末で実行すると、ディスクを選んで調べます |
 | `nisemono doctor` | 必要なツールと、それが入っているかを一覧にします |
 | `nisemono version`、`nisemono help` | バージョンまたは使い方の全文を表示します |
@@ -111,6 +116,8 @@ nisemono probe /dev/disk4                  # disk4 のカードを調べる
 nisemono probe /Volumes/SD                 # マウント中のボリュームはディスク全体を指す
 nisemono probe --samples 4096 /dev/sdb     # 細かい格子、時間がかかる
 nisemono probe --json /dev/disk4           # スクリプト向けの JSON
+nisemono fill /Volumes/SD                  # 空き領域を全バイト確かめ、ファイルは残す
+nisemono fix /dev/disk4                    # 偽物のカードを実際の容量に合わせる
 ```
 
 調べるブロックは上書きされ、偽物のカードではそれ以上のデータも上書きされます。必要なデータは先にカードからコピーしてください。nisemono はファミリー共通のコマンドライン規約に従います。規約は [FAMILY.md](FAMILY.md) にあります。
@@ -172,7 +179,7 @@ graph LR
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/help.png" alt="nisemono: ヘルプ"><br><sub>ヘルプ</sub></td>
-<td width="50%"></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="nisemono: 引数なしの nisemono が開くメニュー"><br><sub>引数なしの nisemono が開くメニュー</sub></td>
 </tr>
 </table>
 

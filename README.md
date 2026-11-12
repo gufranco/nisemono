@@ -87,6 +87,7 @@ tr                 ok       /opt/homebrew/opt/coreutils/libexec/gnubin/tr, gnu 9
 sudo               ok       /usr/bin/sudo
 diskutil           ok       /usr/sbin/diskutil
 plutil             ok       /usr/bin/plutil
+mformat            ok       /opt/homebrew/bin/mformat
 ```
 
 ## Usage
@@ -177,7 +178,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings. The suites r
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/help.png" alt="nisemono: The help page"><br><sub>The help page</sub></td>
-<td width="50%"></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="nisemono: The menu a bare nisemono opens"><br><sub>The menu a bare nisemono opens</sub></td>
 </tr>
 </table>
 

@@ -54,6 +54,7 @@ Fake. /dev/disk6 holds 9.5 MiB, not 32.0 MiB.
 | [`gum`](https://github.com/charmbracelet/gum) | 终端界面：提示、表格和颜色 | `brew install gum`。Homebrew formula 会自动安装 |
 | POSIX `sh`、`dd`、`cmp`、`od`、`head`、`tr` | 工具本身 | macOS 和 Linux 自带。不需要 `bash` |
 | `diskutil` 和 `plutil`，或 `lsblk` 和 `blockdev` | 在 macOS 或 Linux 上读取磁盘信息 | 系统自带 |
+| mtools 的 `mformat` | 仅 `fix` 创建新的 FAT 文件系统时需要 | `brew install mtools` 或 `apt install mtools`。Homebrew formula 会自动安装 |
 
 ### 安装
 
@@ -86,6 +87,7 @@ tr                 ok       /opt/homebrew/opt/coreutils/libexec/gnubin/tr, gnu 9
 sudo               ok       /usr/bin/sudo
 diskutil           ok       /usr/sbin/diskutil
 plutil             ok       /usr/bin/plutil
+mformat            ok       /opt/homebrew/bin/mformat
 ```
 
 ## 用法
@@ -93,6 +95,9 @@ plutil             ok       /usr/bin/plutil
 | 命令 | 用途 |
 |:--------|:--------|
 | `nisemono probe [options] <device\|mount_point>` | 几分钟内测试磁盘并报告实际容量 |
+| `nisemono fill <mount_point>` | 用校验文件填满卷的剩余空间，逐字节读回后删除。速度较慢，但不会动你的文件 |
+| `nisemono fix <device\|mount_point>` | 测试磁盘，若是假货，就在实际容量内建立一个 FAT 分区。上面的内容会全部丢失 |
+| 不带参数的 `nisemono` | 在终端中运行时，从菜单选择任务 |
 | 不带参数的 `nisemono` | 在终端中运行时，选择一个磁盘并测试 |
 | `nisemono doctor` | 列出 nisemono 需要的工具以及是否已安装 |
 | `nisemono version`、`nisemono help` | 显示版本或完整用法 |
@@ -111,6 +116,8 @@ nisemono probe /dev/disk4                  # 测试 disk4 中的卡
 nisemono probe /Volumes/SD                 # 已挂载的卷代表整个磁盘
 nisemono probe --samples 4096 /dev/sdb     # 更密的网格，更慢
 nisemono probe --json /dev/disk4           # 一个 JSON 对象，供脚本使用
+nisemono fill /Volumes/SD                  # 逐字节检查剩余空间，保留你的文件
+nisemono fix /dev/disk4                    # 把假卡缩到它实际的容量
 ```
 
 测试会覆盖被测的块，在扩容卡上还会覆盖更多数据，所以请先把需要的文件复制出来。nisemono 遵循同系列共用的命令行约定，见 [FAMILY.md](FAMILY.md)。
@@ -172,7 +179,7 @@ graph LR
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/help.png" alt="nisemono: 帮助页面"><br><sub>帮助页面</sub></td>
-<td width="50%"></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="nisemono: 不带参数的 nisemono 打开的菜单"><br><sub>不带参数的 nisemono 打开的菜单</sub></td>
 </tr>
 </table>
 

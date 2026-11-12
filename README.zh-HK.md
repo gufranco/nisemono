@@ -54,6 +54,7 @@ Fake. /dev/disk6 holds 9.5 MiB, not 32.0 MiB.
 | [`gum`](https://github.com/charmbracelet/gum) | 終端介面：提示、表格和顏色 | `brew install gum`。Homebrew formula 會自動安裝 |
 | POSIX `sh`、`dd`、`cmp`、`od`、`head`、`tr` | 工具本身 | macOS 和 Linux 已內置。毋須 `bash` |
 | `diskutil` 和 `plutil`，或 `lsblk` 和 `blockdev` | 在 macOS 或 Linux 上讀取磁碟資料 | 已內置 |
+| mtools 的 `mformat` | 只有 `fix` 建立新的 FAT 檔案系統時需要 | `brew install mtools` 或 `apt install mtools`。Homebrew formula 會自動安裝 |
 
 ### 安裝
 
@@ -86,6 +87,7 @@ tr                 ok       /opt/homebrew/opt/coreutils/libexec/gnubin/tr, gnu 9
 sudo               ok       /usr/bin/sudo
 diskutil           ok       /usr/sbin/diskutil
 plutil             ok       /usr/bin/plutil
+mformat            ok       /opt/homebrew/bin/mformat
 ```
 
 ## 用法
@@ -93,6 +95,9 @@ plutil             ok       /usr/bin/plutil
 | 指令 | 用途 |
 |:--------|:--------|
 | `nisemono probe [options] <device\|mount_point>` | 數分鐘內測試磁碟並報告實際容量 |
+| `nisemono fill <mount_point>` | 用校驗檔案填滿卷宗的剩餘空間，逐位元組讀回後刪除。速度較慢，但不會動你的檔案 |
+| `nisemono fix <device\|mount_point>` | 測試磁碟，若是假貨，就在實際容量內建立一個 FAT 分割區。上面的內容會全部遺失 |
+| 不帶參數的 `nisemono` | 在終端機中運行時，從選單選擇工作 |
 | 不帶參數的 `nisemono` | 在終端中執行時，揀選一個磁碟並測試 |
 | `nisemono doctor` | 列出 nisemono 需要的工具以及是否已安裝 |
 | `nisemono version`、`nisemono help` | 顯示版本或完整用法 |
@@ -111,6 +116,8 @@ nisemono probe /dev/disk4                  # 測試 disk4 中的卡
 nisemono probe /Volumes/SD                 # 已掛載的卷宗代表整個磁碟
 nisemono probe --samples 4096 /dev/sdb     # 更密的網格，較慢
 nisemono probe --json /dev/disk4           # 一個 JSON 物件，供指令碼使用
+nisemono fill /Volumes/SD                  # 逐位元組檢查剩餘空間，保留你的檔案
+nisemono fix /dev/disk4                    # 把假卡縮到它實際的容量
 ```
 
 測試會覆蓋被測的區塊，在擴容卡上更會覆蓋更多資料，所以請先把需要的檔案複製出來。nisemono 依從同系列共用的指令列約定，見 [FAMILY.md](FAMILY.md)。
@@ -172,7 +179,7 @@ graph LR
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/help.png" alt="nisemono: 說明頁面"><br><sub>說明頁面</sub></td>
-<td width="50%"></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="nisemono: 不帶參數的 nisemono 打開的選單"><br><sub>不帶參數的 nisemono 打開的選單</sub></td>
 </tr>
 </table>
 

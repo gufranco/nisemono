@@ -11,6 +11,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 
 | Member | What it does | Repository |
 |:-------|:-------------|:-----------|
+| enban | Writes, reads, builds and verifies CD, DVD and Blu-ray discs in a terminal app | [gufranco/enban](https://github.com/gufranco/enban) |
 | fusho | Sends an encrypted message through any chat, using the recipient's published SSH keys | [gufranco/fusho](https://github.com/gufranco/fusho) |
 | jimaku | Downloads subtitles for videos and saves them as UTF-8 | [gufranco/jimaku](https://github.com/gufranco/jimaku) |
 | kakikomi | Writes a disk image to removable media, verified chunk by chunk, never mounted | [gufranco/kakikomi](https://github.com/gufranco/kakikomi) |
@@ -28,7 +29,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome nazuke nisemono shiwake yakitsuke; do
+for member in enban fusho jimaku kakikomi katazuke kiban kirisute kiyome nazuke nisemono shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
